@@ -112,38 +112,40 @@ class NetworkMonitor:
     
     def convert_to_cellular_format(self, net_stats):
         """
-        Convert system network stats to format similar to cellular network data.
-        This simulates cellular network metrics based on your computer's usage.
+        Convert system network stats to a format similar to cellular network data,
+        using a more deterministic mapping.
         """
         if not net_stats:
             return None
         
-        # Randomly assign to a cell (simulating multiple cell towers)
+        # Randomly assign to a cell, but keep the core logic non-random
         cell_name = random.choice(self.cell_names)
         
-        # Convert bytes to cellular-like metrics
-        # PRB (Physical Resource Block) usage simulation
-        # Higher network usage = higher PRB usage
-        total_throughput = (net_stats['bytes_sent_rate'] + net_stats['bytes_recv_rate']) / 1024  # KB/s
+        # Calculate total throughput
+        total_throughput_kbps = (net_stats['bytes_sent_rate'] + net_stats['bytes_recv_rate']) / 1024
         
-        # Simulate PRB usage (0-100%) based on throughput and connections
-        prb_ul = min(100, (net_stats['bytes_sent_rate'] / 1024 / 100) * 10 + random.uniform(5, 15))
-        prb_dl = min(100, (net_stats['bytes_recv_rate'] / 1024 / 100) * 10 + random.uniform(10, 25))
+        # --- PRB Usage (Less random, more proportional) ---
+        # Max PRB usage is 100%. Let's assume a linear relationship where
+        # 10,000 KB/s (10 MB/s) corresponds to 50% PRB usage.
+        # We add a small amount of Gaussian noise instead of large random variations.
+        prb_ul = min(100, (net_stats['bytes_sent_rate'] / 1024) / 200 + np.random.normal(2, 0.5))
+        prb_dl = min(100, (net_stats['bytes_recv_rate'] / 1024) / 200 + np.random.normal(5, 1))
+
+        # --- Throughput metrics (Direct conversion) ---
+        mean_thr_ul = (net_stats['bytes_sent_rate'] * 8) / (1024 * 1024)  # Mbps
+        mean_thr_dl = (net_stats['bytes_recv_rate'] * 8) / (1024 * 1024)  # Mbps
         
-        # Throughput metrics (simulated in Mbps)
-        mean_thr_ul = (net_stats['bytes_sent_rate'] * 8) / (1024 * 1024)  # Convert to Mbps
-        mean_thr_dl = (net_stats['bytes_recv_rate'] * 8) / (1024 * 1024)  # Convert to Mbps
+        # Max throughput is now just a scaling factor of mean throughput, not a large random number.
+        max_thr_ul = mean_thr_ul * 1.5  
+        max_thr_dl = mean_thr_dl * 1.5 
         
-        # Add some realistic variation
-        max_thr_ul = mean_thr_ul * random.uniform(1.2, 2.5)
-        max_thr_dl = mean_thr_dl * random.uniform(1.2, 2.5)
-        
-        # User Equipment (UE) metrics - based on connections
+        # --- User Equipment (UE) metrics (Directly tied to active connections) ---
+        # The number of connections is the key indicator. Add a small constant to avoid zero.
         base_users = max(1, net_stats['active_connections'])
-        mean_ue_ul = base_users * random.uniform(0.7, 1.0)
-        mean_ue_dl = base_users * random.uniform(0.8, 1.2)
-        max_ue_ul = mean_ue_ul * random.uniform(1.5, 3.0)
-        max_ue_dl = mean_ue_dl * random.uniform(1.5, 3.0)
+        mean_ue_ul = base_users * 0.9  
+        mean_ue_dl = base_users * 1.1
+        max_ue_ul = base_users * 1.5
+        max_ue_dl = base_users * 2.0
         
         # Create cellular network format data
         cellular_data = {
@@ -160,10 +162,9 @@ class NetworkMonitor:
             'maxUE_DL': round(max_ue_dl, 1),
             'maxUE_UL': round(max_ue_ul, 1),
             'maxUE_UL+DL': round(max_ue_ul + max_ue_dl, 1),
-            # Additional metadata
             'system_cpu': net_stats['cpu_percent'],
             'system_memory': net_stats['memory_percent'],
-            'raw_throughput_kbps': total_throughput
+            'raw_throughput_kbps': total_throughput_kbps
         }
         
         return cellular_data
@@ -306,7 +307,7 @@ class NetworkMonitor:
             print("No data to save")
             return
         
-        filepath = f"output/{filename}"
+        filepath = f"results/{filename}"
         df.to_csv(filepath, index=False)
         print(f"💾 Saved {len(df)} data points to {filepath}")
         
@@ -335,23 +336,23 @@ def main():
         print()
         
         # Optional: Generate some artificial load
-        generate_load = input("Generate artificial network load? (y/n): ").lower() == 'y'
-        if generate_load:
+        generate_load = input("Generate artificial network load? (y/n): ").lower()
+        if generate_load == "y":
             monitor.simulate_network_load(duration_seconds=30)
         
-        print("📈 Monitoring... Press Ctrl+C to stop")
-        
-        # Keep monitoring until interrupted
-        while True:
-            time.sleep(5)
+            print("📈 Monitoring... Press Ctrl+C to stop")
             
-            # Show stats every 30 seconds
-            if len(monitor.data_buffer) % 15 == 0 and len(monitor.data_buffer) > 0:
-                recent_data = monitor.get_recent_data(minutes=5)
-                if not recent_data.empty:
-                    avg_prb_ul = recent_data['PRBUsageUL'].mean()
-                    avg_prb_dl = recent_data['PRBUsageDL'].mean()
-                    print(f"\n📊 5-min averages: UL={avg_prb_ul:.1f}%, DL={avg_prb_dl:.1f}%")
+            # Keep monitoring until interrupted
+            while True:
+                time.sleep(5)
+                
+                # Show stats every 30 seconds
+                if len(monitor.data_buffer) % 15 == 0 and len(monitor.data_buffer) > 0:
+                    recent_data = monitor.get_recent_data(minutes=5)
+                    if not recent_data.empty:
+                        avg_prb_ul = recent_data['PRBUsageUL'].mean()
+                        avg_prb_dl = recent_data['PRBUsageDL'].mean()
+                        print(f"\n📊 5-min averages: UL={avg_prb_ul:.1f}%, DL={avg_prb_dl:.1f}%")
     
     except KeyboardInterrupt:
         print("\n\n🛑 Stopping monitoring...")
@@ -360,6 +361,7 @@ def main():
         # Save collected data
         if monitor.data_buffer:
             filepath = monitor.save_data_to_csv()
+            print(filepath)
             print(f"💾 Data saved to: {filepath}")
             
             # Show summary

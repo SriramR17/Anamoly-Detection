@@ -70,7 +70,7 @@ class RealTimeAnomalyDetector:
         
         try:
             # Load training data
-            train_data, test_data = load_data("D:\CTS\data\ML-MATT-CompetitionQT1920_train.csv","D:\CTS\data\ML-MATT-CompetitionQT1920_test.csv")
+            train_data, test_data = load_data("data\ML-MATT-CompetitionQT1920_train.csv","data\ML-MATT-CompetitionQT1920_test.csv")
             
             # Preprocess data and train model
             X_train, y_train, X_test, feature_names = preprocess_data(train_data, test_data)

@@ -17,6 +17,7 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 # Data files
 TRAIN_FILE = DATA_DIR / "ML-MATT-CompetitionQT1920_train.csv"
 TEST_FILE = DATA_DIR / "ML-MATT-CompetitionQT1920_test.csv"
+# TEST_FILE =  "results/network_data_20250826_230324.csv"
 
 # Column definitions
 TARGET_COL = 'Unusual'

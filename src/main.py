@@ -9,7 +9,7 @@ import numpy as np
 from data_loader import load_data
 from explorer import explore_data
 from preprocessor import preprocess_data
-from model_trainer import train_models, make_predictions
+from model_trainer import train_models, make_predictions, get_or_train_model, force_retrain_model
 from config import OUTPUT_DIR, PREDICTIONS_FILE
 
 
@@ -42,9 +42,9 @@ def run_anomaly_detection():
         print("\n3. Preprocessing data...")
         X_train, y_train, X_test, feature_names = preprocess_data(train_data, test_data)
         
-        # Step 4: Train models
-        print("\n4. Training models...")
-        model_results = train_models(X_train, y_train)
+        # Step 4: Train models (or load existing)
+        print("\n4. Loading/Training models...")
+        model_results = get_or_train_model(X_train, y_train)
         
         # Step 5: Make predictions
         print("\n5. Making predictions...")

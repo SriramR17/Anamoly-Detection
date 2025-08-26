@@ -203,4 +203,16 @@ Changelog (Session)
   * Updated all module paths to work with new structure
   * Added PROJECT_STRUCTURE.md documenting organization
   * Cleaned up temporary files (__pycache__)
+- **FIXED MODEL RETRAINING ISSUE (Aug 26, 2025):**
+  * Problem: Model trainer was retraining models every time despite saved model existing
+  * Root cause: Main pipeline (src/main.py) always called train_models() without checking for existing models
+  * Solution: Created get_or_train_model() function that checks for existing model first
+  * Changes made:
+    - Added get_or_train_model() function in model_trainer.py
+    - Added force_retrain_model() function for when retraining is explicitly needed
+    - Updated main.py to use get_or_train_model() instead of train_models()
+    - Improved model path handling using pathlib for cross-platform compatibility
+    - Model now loads from best_model.joblib in project root if it exists
+  * Result: System now loads existing model in ~2 seconds instead of retraining (~30+ seconds)
+  * Test confirmed: Running main.py shows "Found existing model... Loading... Model loaded successfully. Skipping training."
 
