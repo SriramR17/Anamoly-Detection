@@ -357,7 +357,11 @@ class RealTimeAnomalyDetector:
 
 def main():
     """Demo of real-time anomaly detection."""
-    detector = RealTimeAnomalyDetector()
+    # The system will load this model if it exists, skipping the training step.
+    MODEL_PATH = "models/realtime_model.joblib"
+    
+    print(f"Attempting to load model from: {MODEL_PATH}")
+    detector = RealTimeAnomalyDetector(model_path=MODEL_PATH)
     
     # Custom alert callback
     def my_alert_handler(details):
@@ -428,9 +432,9 @@ def main():
         print(f"   Anomalies detected: {stats['anomalies_detected']}")
         print(f"   Detection rate: {stats['anomaly_rate']:.1f}%")
         
-        # Save model
-        model_path = "models/realtime_model.joblib"
-        detector.save_model(model_path)
+        # Save model upon exit (this will overwrite the existing model with the same one)
+        # You could make this conditional if you don't want to re-save.
+        detector.save_model(MODEL_PATH)
         
         print(f"\n✅ Real-time detection session complete!")
     
