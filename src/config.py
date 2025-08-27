@@ -35,11 +35,37 @@ NUMERIC_COLS = [
 RANDOM_STATE = 42
 TEST_SIZE = 0.2
 
-# Simple model parameters
+# Comprehensive model parameters for algorithm testing
 MODEL_PARAMS = {
-    'RandomForest': {'n_estimators': 100, 'random_state': RANDOM_STATE},
-    'LogisticRegression': {'random_state': RANDOM_STATE},
-    'GradientBoosting': {'n_estimators': 100, 'random_state': RANDOM_STATE}
+    # Existing algorithms
+    'RandomForest': {'n_estimators': 100, 'random_state': RANDOM_STATE, 'n_jobs': -1},
+    'LogisticRegression': {'random_state': RANDOM_STATE, 'max_iter': 1000},
+    'GradientBoosting': {'n_estimators': 100, 'random_state': RANDOM_STATE},
+    
+    # Additional Tree-based algorithms
+    'DecisionTree': {'random_state': RANDOM_STATE, 'max_depth': 10},
+    'ExtraTrees': {'n_estimators': 100, 'random_state': RANDOM_STATE, 'n_jobs': -1},
+    'AdaBoost': {'n_estimators': 50, 'random_state': RANDOM_STATE},
+    
+    
+    
+    # Instance-based algorithms
+    'KNN': {'n_neighbors': 5, 'n_jobs': -1},
+    
+    # Naive Bayes   
+    'GaussianNB': {},
+    
+    # Neural Network
+    'MLP': {'hidden_layer_sizes': (100, 50), 'random_state': RANDOM_STATE, 'max_iter': 500},
+    
+    # XGBoost (if available)
+    'XGBoost': {'n_estimators': 100, 'random_state': RANDOM_STATE, 'eval_metric': 'logloss'},
+    
+    # LightGBM (if available)
+    'LightGBM': {'n_estimators': 100, 'random_state': RANDOM_STATE, 'verbose': -1},
+    
+    # CatBoost (if available)
+    'CatBoost': {'iterations': 100, 'random_state': RANDOM_STATE, 'verbose': False}
 }
 
 # Output files
