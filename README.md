@@ -277,23 +277,5 @@ GaussianNB    : 32.77% accuracy
 - **Evaluation Metrics**: Accuracy, F1-Score, Precision, Recall
 - **Feature Engineering**: 23 engineered features from 14 raw features
 
-## 👥 Contributing
 
-This project demonstrates professional machine learning engineering practices:
-- Comprehensive algorithm evaluation
-- Robust data preprocessing
-- Thorough testing and validation
-- Clear documentation and results reporting
-- Production-ready model persistence
 
-## 📞 Support
-
-For technical questions or improvements, review the test results in `results/` directory or examine the algorithm comparison data for detailed performance analysis.
-
----
-
-**Project Status**: ✅ **PRODUCTION READY**  
-**Best Model**: 🐱 **CatBoost** (98.93% Accuracy)  
-**Last Updated**: Generated from comprehensive testing results  
-
-*This documentation was generated based on actual execution results and comprehensive algorithm testing performed on the network anomaly detection system.*
