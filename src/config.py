@@ -55,9 +55,7 @@ MODEL_PARAMS = {
     # Naive Bayes   
     'GaussianNB': {},
     
-    # Neural Network
-    'MLP': {'hidden_layer_sizes': (100, 50), 'random_state': RANDOM_STATE, 'max_iter': 500},
-    
+ 
     # XGBoost (if available)
     'XGBoost': {'n_estimators': 100, 'random_state': RANDOM_STATE, 'eval_metric': 'logloss'},
     

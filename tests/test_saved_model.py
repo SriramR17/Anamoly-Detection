@@ -30,8 +30,8 @@ def main():
         print(f"\n📊 Model Information:")
         print(f"   Type: {type(model).__name__}")
         print(f"   Algorithm: {model.__class__.__name__}")
-        print(f"   Number of estimators: {model.n_estimators}")
-        print(f"   Features expected: {model.n_features_in_}")
+        
+        
         print(f"   Classes: {model.classes_}")
         
         # Load test data for validation

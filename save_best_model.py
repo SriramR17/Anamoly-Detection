@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Script to train and save the best performing model (RandomForest) to models directory.
-Based on our comprehensive algorithm testing, RandomForest achieved 91.58% accuracy.
+Script to train and save the best performing model (CatBoost) to models directory.
+Based on our comprehensive algorithm testing, CatBoost achieved superior performance.
 """
 
 import sys
@@ -14,9 +14,9 @@ sys.path.insert(0, str(Path(__file__).parent / 'src'))
 
 def main():
     """
-    Train the best model and save it to models directory.
+    Train the best model (CatBoost) and save it to models directory.
     """
-    print("🚀 Training and saving the best model (RandomForest)...")
+    print("🚀 Training and saving the best model (CatBoost)...")
     print("=" * 60)
     
     try:
@@ -24,8 +24,11 @@ def main():
         from src.data_loader import load_data
         from src.preprocessor import preprocess_data
         from src.model_trainer import train_models
-        from sklearn.ensemble import RandomForestClassifier
         from config import MODEL_PARAMS
+        
+        # Import CatBoost
+        from catboost import CatBoostClassifier
+        from sklearn.model_selection import cross_val_score
         
         # Create models directory if it doesn't exist
         models_dir = Path("models")
@@ -41,20 +44,27 @@ def main():
         print(f"   Features: {X_train.shape[1]}")
         print(f"   Test samples: {X_test.shape[0]:,}")
         
-        # Train the best model (RandomForest) with optimal parameters
-        print("\n🌟 Training RandomForest (best performing algorithm)...")
+        # Train the best model (CatBoost) with optimal parameters
+        print("\n🌟 Training CatBoost (best performing algorithm)...")
         
-        # Use the optimized parameters from our config
-        best_model = RandomForestClassifier(**MODEL_PARAMS['RandomForest'])
+        # Use optimized parameters from config or fall back to defaults
+        cat_params = MODEL_PARAMS.get('CatBoost', {
+            'iterations': 200,
+            'depth': 6,
+            'learning_rate': 0.1,
+            'loss_function': 'Logloss',
+            'verbose': False,
+            'random_seed': 42
+        })
+        
+        best_model = CatBoostClassifier(**cat_params)
         
         # Train the model
         print("   Training on full dataset...")
-        best_model.fit(X_train, y_train)
+        best_model.fit(X_train, y_train, verbose=False)
         
-        # Evaluate on training data to show performance
-        from sklearn.model_selection import cross_val_score
+        # Evaluate with cross-validation
         print("   Evaluating performance with cross-validation...")
-        
         cv_accuracy = cross_val_score(best_model, X_train, y_train, cv=5, scoring='accuracy')
         cv_f1 = cross_val_score(best_model, X_train, y_train, cv=5, scoring='f1')
         cv_precision = cross_val_score(best_model, X_train, y_train, cv=5, scoring='precision')
@@ -88,10 +98,9 @@ def main():
         
         # Show model information
         print(f"\n📋 Model Information:")
-        print(f"   Algorithm: RandomForest")
+        print(f"   Algorithm: CatBoost")
         print(f"   Parameters: {best_model.get_params()}")
-        print(f"   Number of trees: {best_model.n_estimators}")
-        print(f"   Features used: {best_model.n_features_in_}")
+        print(f"   Features used: {X_train.shape[1]}")
         print(f"   Classes: {best_model.classes_}")
         
         # Feature importance (top 10)
@@ -104,17 +113,10 @@ def main():
                 print(f"   {i:2d}. {feature}: {importance:.4f}")
         
         print("\n" + "=" * 60)
-        print("🎉 SUCCESS! Best model saved and ready for use!")
+        print("🎉 SUCCESS! Best model saved and ready for use! 🐱🔥")
         print("=" * 60)
         print(f"📁 Model location: {model_path.absolute()}")
-        print(f"🏆 Algorithm: RandomForest")
-        print(f"🎯 Expected accuracy: ~91.58%")
-        print(f"📏 Expected F1-score: ~82.46%")
-        print("\n💡 Usage:")
-        print("   import joblib")
-        print(f"   model = joblib.load('{model_path}')")
-        print("   predictions = model.predict(X_test)")
-        print("   probabilities = model.predict_proba(X_test)")
+        print(f"🏆 Algorithm: CatBoost")
         
         return model_path
         

@@ -14,10 +14,10 @@ from sklearn.ensemble import (
 )
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.svm import SVC, LinearSVC
+
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
-from sklearn.neural_network import MLPClassifier
+
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from config import MODEL_PARAMS, RANDOM_STATE
@@ -43,7 +43,7 @@ def get_model_instance(model_name, params):
             'AdaBoost': AdaBoostClassifier,
             'KNN': KNeighborsClassifier,
             'GaussianNB': GaussianNB,
-            'MLP': MLPClassifier,
+         
         }
         
         # Try XGBoost
