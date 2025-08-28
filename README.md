@@ -1,6 +1,6 @@
-# Network Anomaly Detection System
+# Anomaly Detection Dashboard
 
-A high-performance machine learning system for detecting network anomalies in telecom traffic data using advanced gradient boosting algorithms.
+A comprehensive web-based dashboard for anomaly detection with real-time data visualization and monitoring capabilities. This project combines a FastAPI backend with a React TypeScript frontend to provide an interactive platform for monitoring and analyzing anomaly detection results.
 
 ## 🎯 Project Overview
 
