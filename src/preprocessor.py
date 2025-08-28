@@ -46,6 +46,8 @@ def preprocess_data(train_data, test_data):
     scaler = StandardScaler()
     X_train = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns)
     X_test = pd.DataFrame(scaler.transform(X_test), columns=X_test.columns)
+    X_train=X_train[['meanUE_UL','meanUE_DL','PRBUsageUL','PRBUsageDL','total_users']]
+    X_test=X_test[['meanUE_UL','meanUE_DL','PRBUsageUL','PRBUsageDL','total_users']]
     
     print(f"✓ Preprocessing complete:")
     print(f"  Features: {len(X_train.columns)}")
@@ -154,6 +156,8 @@ def _prepare_features(data, include_target=True):
     y = None
     if include_target and TARGET_COL in data.columns:
         y = data[TARGET_COL]
+
+    
     
     return X, y
 
@@ -161,10 +165,13 @@ def _prepare_features(data, include_target=True):
 if __name__ == "__main__":
     # Test the preprocessor
     try:
-        from data_loader import load_data
+        from src.data_loader import load_data
         train_data, test_data = load_data()
         X_train, y_train, X_test, features = preprocess_data(train_data, test_data)
+        
+
         print("✓ Preprocessing test successful")
-        print(f"Features created: {features[:5]}...")  # Show first 5 feature names
+        print(f"Features created: {features[:5]}...")
+        print(X_train.columns)  # Show first 5 feature names
     except Exception as e:
         print(f"❌ Error: {e}")

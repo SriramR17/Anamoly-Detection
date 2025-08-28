@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Script to train and save the best performing model (CatBoost) to models directory.
-Based on our comprehensive algorithm testing, CatBoost achieved superior performance.
+Script to train and save the best performing model (LightGBM) to models directory.
+Based on our comprehensive algorithm testing, LightGBM achieved superior performance.
 """
 
 import sys
@@ -14,9 +14,9 @@ sys.path.insert(0, str(Path(__file__).parent / 'src'))
 
 def main():
     """
-    Train the best model (CatBoost) and save it to models directory.
+    Train the best model (LightGBM) and save it to models directory.
     """
-    print("🚀 Training and saving the best model (CatBoost)...")
+    print("🚀 Training and saving the best model (LightGBM)...")
     print("=" * 60)
     
     try:
@@ -26,8 +26,8 @@ def main():
         from src.model_trainer import train_models
         from config import MODEL_PARAMS
         
-        # Import CatBoost
-        from catboost import CatBoostClassifier
+        # Import LightGBM
+        from lightgbm import LGBMClassifier
         from sklearn.model_selection import cross_val_score
         
         # Create models directory if it doesn't exist
@@ -44,24 +44,22 @@ def main():
         print(f"   Features: {X_train.shape[1]}")
         print(f"   Test samples: {X_test.shape[0]:,}")
         
-        # Train the best model (CatBoost) with optimal parameters
-        print("\n🌟 Training CatBoost (best performing algorithm)...")
+        # Train the best model (LightGBM) with optimal parameters
+        print("\n🌟 Training LightGBM (best performing algorithm)...")
         
         # Use optimized parameters from config or fall back to defaults
-        cat_params = MODEL_PARAMS.get('CatBoost', {
-            'iterations': 200,
-            'depth': 6,
+        lgbm_params = MODEL_PARAMS.get('LightGBM', {
+            'n_estimators': 200,
+            'max_depth': 6,
             'learning_rate': 0.1,
-            'loss_function': 'Logloss',
-            'verbose': False,
-            'random_seed': 42
+            'random_state': 42
         })
         
-        best_model = CatBoostClassifier(**cat_params)
+        best_model = LGBMClassifier(**lgbm_params)
         
         # Train the model
         print("   Training on full dataset...")
-        best_model.fit(X_train, y_train, verbose=False)
+        best_model.fit(X_train, y_train)
         
         # Evaluate with cross-validation
         print("   Evaluating performance with cross-validation...")
@@ -98,7 +96,7 @@ def main():
         
         # Show model information
         print(f"\n📋 Model Information:")
-        print(f"   Algorithm: CatBoost")
+        print(f"   Algorithm: LightGBM")
         print(f"   Parameters: {best_model.get_params()}")
         print(f"   Features used: {X_train.shape[1]}")
         print(f"   Classes: {best_model.classes_}")
@@ -113,10 +111,10 @@ def main():
                 print(f"   {i:2d}. {feature}: {importance:.4f}")
         
         print("\n" + "=" * 60)
-        print("🎉 SUCCESS! Best model saved and ready for use! 🐱🔥")
+        print("🎉 SUCCESS! Best model saved and ready for use! 🌟🔥")
         print("=" * 60)
         print(f"📁 Model location: {model_path.absolute()}")
-        print(f"🏆 Algorithm: CatBoost")
+        print(f"🏆 Algorithm: LightGBM")
         
         return model_path
         
