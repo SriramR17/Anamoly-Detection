@@ -37,7 +37,7 @@ TEST_SIZE = 0.2
 
 # Comprehensive model parameters for algorithm testing
 MODEL_PARAMS = {
-    # Existing algorithms
+    
     'RandomForest': {'n_estimators': 100, 'random_state': RANDOM_STATE, 'n_jobs': -1},
     'LogisticRegression': {'random_state': RANDOM_STATE, 'max_iter': 1000},
     'GradientBoosting': {'n_estimators': 100, 'random_state': RANDOM_STATE},

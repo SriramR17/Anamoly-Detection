@@ -10,12 +10,12 @@ This script launches the complete anomaly detection system from the project root
 import sys
 from pathlib import Path
 
-# Add src directory to Python path
+
 src_path = Path(__file__).parent / "src"
 sys.path.insert(0, str(src_path))
 
-# Import and run the main pipeline
-from main import run_anomaly_detection
+
+from src.pipeline import run_anomaly_detection
 
 def main():
     """Main entry point for the anomaly detection system."""
@@ -45,7 +45,6 @@ def main():
         
         print("\n🎯 Next Steps:")
         print("   • Review results in results/ directory")
-        print("   • Check docs/documentation.txt for details")
         print("   • Run tests/test_outputs.py for validation")
         
     else:

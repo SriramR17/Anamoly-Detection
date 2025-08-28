@@ -23,7 +23,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from config import MODEL_PARAMS, RANDOM_STATE
 import os
 import joblib
-import matplotlib.pyplot as plt
+
 
 # Suppress warnings for cleaner output
 warnings.filterwarnings('ignore')
@@ -43,7 +43,6 @@ def get_model_instance(model_name, params):
             'AdaBoost': AdaBoostClassifier,
             'KNN': KNeighborsClassifier,
             'GaussianNB': GaussianNB,
-         
         }
         
         # Try XGBoost
@@ -294,7 +293,7 @@ def get_or_train_model(X_train, y_train, model_path=None, force_retrain=False):
             results = {
                 'models': {'LoadedModel': best_model},
                 'scores': {'LoadedModel': {'cv_f1_mean': 'N/A (pre-trained)', 'cv_f1_std': 'N/A'}},
-                'best_model_name': 'LoadedModel',
+                'best_model_name': best_model.__class__.__name__,
                 'best_model': best_model
             }
             

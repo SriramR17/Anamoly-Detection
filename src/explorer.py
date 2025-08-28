@@ -112,7 +112,7 @@ def _create_basic_plots(train_data):
     plt.savefig(plot_path, dpi=150, bbox_inches='tight')
     print(f"✓ Exploration plots saved to: {plot_path}")
     
-    plt.show()
+    #plt.show()
 
 
 if __name__ == "__main__":

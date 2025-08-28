@@ -97,14 +97,6 @@ def save_results(test_data, predictions, probabilities):
     print(f"✓ Simple predictions saved to: {simple_file}")
 
 
-def quick_prediction(model_path=None):
-    """
-    Quick function to load a saved model and make predictions.
-    (For future use when models are saved)
-    """
-    # This would load a previously trained model and make predictions
-    # Implementation depends on model saving format
-    pass
 
 
 if __name__ == "__main__":
