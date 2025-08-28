@@ -72,7 +72,48 @@ async def get_dashboard_data():
                 }
             }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error loading dashboard data: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error loading best models: {str(e)}")
+        
+@app.get("/api/best_models")
+async def get_best_models():
+    """
+    Retrieves the top 5 best-performing models based on 'Accuracy_Mean'
+    from the 'algorithm_comparison_results.csv' file.
+    
+    The results are formatted into a nested list of dictionaries.
+    """
+    try:
+
+        csv_file_path = Path(__file__).parent.parent / "results" / "algorithm_comparison_results.csv"
+        
+        if not csv_file_path.exists():
+            # If the file doesn't exist, raise an HTTP 404 Not Found error.
+            raise HTTPException(status_code=404, detail="Results file not found.")
+        
+        # Read the data from the CSV file into a pandas DataFrame.
+        df = pd.read_csv(csv_file_path)
+
+        best_models_df = df.sort_values(by="Accuracy_Mean", ascending=False).head(5)
+                
+        formatted_data = []
+        for _, row in best_models_df.iterrows():
+
+            model_name = row['Algorithm']
+                        
+            metrics = row.drop('Algorithm').to_dict()
+                        
+            model_entry = {model_name: metrics}
+                        
+            formatted_data.append(model_entry)            
+
+        print(formatted_data)
+            
+        return {
+            "status": "success",
+            "data": formatted_data  # Place the newly formatted list here.
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error loading best models: {str(e)}")
 
 @app.get("/api/predictions")
 async def get_predictions():
