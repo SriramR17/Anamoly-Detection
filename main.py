@@ -33,7 +33,7 @@ def main():
         print("✅ SYSTEM EXECUTION COMPLETED SUCCESSFULLY")
         print("=" * 50)
         print("\n📊 Quick Summary:")
-        print(f"   • Best Model: {results['model_results']['best_model_name']}")
+        print(f"   • Best Model: {results['model_results']['best_model']}")
         print(f"   • Anomalies Detected: {results['predictions'].sum():,}")
         print(f"   • Total Samples: {len(results['predictions']):,}")
         print(f"   • Anomaly Rate: {results['predictions'].mean()*100:.1f}%")

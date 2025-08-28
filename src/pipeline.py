@@ -9,7 +9,7 @@ import numpy as np
 from data_loader import load_data
 from explorer import explore_data
 from preprocessor import preprocess_data
-from model_trainer import train_models, make_predictions, get_or_train_model, force_retrain_model
+from model_trainer import train_models, make_predictions, get_or_train_model
 from config import OUTPUT_DIR, PREDICTIONS_FILE
 
 
@@ -58,7 +58,7 @@ def run_anomaly_detection():
         print("\n" + "="*60)
         print("PIPELINE COMPLETED SUCCESSFULLY!")
         print("="*60)
-        print(f"Best model: {model_results['best_model_name']}")
+        print(f"Best model: {model_results['best_model']}")
         print(f"Predicted anomalies: {np.sum(predictions):,} out of {len(predictions):,}")
         print(f"Results saved to: {OUTPUT_DIR}")
         
@@ -95,8 +95,6 @@ def save_results(test_data, predictions, probabilities):
     simple_file = OUTPUT_DIR / "simple_predictions.csv"
     simple_submission.to_csv(simple_file, index=False)
     print(f"✓ Simple predictions saved to: {simple_file}")
-
-
 
 
 if __name__ == "__main__":
