@@ -19,7 +19,7 @@ app = FastAPI(title="Anomaly Detection API", version="1.0.0")
 # Enable CORS for React app
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React dev server
+    allow_origins=["http://localhost:5173"],  # React dev server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -73,7 +73,40 @@ async def get_dashboard_data():
             }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading best models: {str(e)}")
-        
+
+@app.get("/api/get_evaluation_metrics")
+async def get_evaluation_metrics():
+    try:
+        csv_file_path = Path(__file__).parent.parent / 'results' / 'algorithm_comparison_results.csv'
+        if not csv_file_path.exists():
+            raise HTTPException(status_code=404, detail="Results file not found.")
+
+        df = pd.read_csv(csv_file_path)
+
+        # --- FIX ---
+        # Find the index of the row with the highest 'Accuracy_Mean'
+        max_acc_index = df['Accuracy_Mean'].idxmax()
+
+        metrics = df.loc[max_acc_index]
+
+        # Now the columns match
+        return {
+            "status": "success",
+            "data": {
+                "Accuracy": metrics['Accuracy_Mean'],
+                "F1_Score": metrics['F1_Mean'],
+                "Precision": metrics['Precision_Mean'],
+                "Recall": metrics['Recall_Mean']
+            }
+        }
+
+    except KeyError as e:
+        # Specific error for missing columns
+        raise HTTPException(status_code=500, detail=f"A required column is missing from the CSV: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error loading Metrics: {str(e)}")
+
+
 @app.get("/api/best_models")
 async def get_best_models():
     """
@@ -190,6 +223,8 @@ async def run_detection():
             
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error running detection: {str(e)}")
+
+
 
 if __name__ == "__main__":
     import uvicorn
