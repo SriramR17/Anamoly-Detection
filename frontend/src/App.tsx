@@ -108,10 +108,6 @@ const topAnomalyNetworks: NetworkInfo[] = [
   { name: 'Network-Zeta-006', totalSamples: 54321, anomaliesDetected: 987, anomalyRate: 1.82, lastUpdate: '18 min ago', recentAnomaly: 'XSS Attack', severity: 'low' }
 ];
 
-const distributionData: PieDatum[] = [
-  { name: 'Normal Traffic', value: 97.14, color: '#10B981' },
-  { name: 'Anomalous Traffic', value: 2.86, color: '#EF4444' }
-];
 
 // ---------- UI Components ----------
 const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon: Icon, trend, color = 'blue' }) => {
@@ -511,6 +507,10 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [distributionData, setDistributionData] = useState<PieDatum[]>([
+    { name: 'Normal Traffic', value: 0, color: '#10B981' },
+    { name: 'Anomalous Traffic', value: 0, color: '#EF4444' }
+  ]);
   const [stats, setStats] = useState({
     totalSamples: '0',
     anomaliesDetected: '0',
@@ -534,6 +534,15 @@ function App() {
           detectionRate: `${result.data.anomaly_rate}%`,
           responseTime: '0.23ms',
         });
+
+        const anomalyRate = result.data.anomaly_rate;
+        const normalRate = 100 - anomalyRate;
+
+
+        setDistributionData([
+        { name: 'Normal Traffic', value: parseFloat(normalRate.toFixed(2)), color: '#10B981' },
+        { name: 'Anomalous Traffic', value: parseFloat(anomalyRate.toFixed(2)), color: '#EF4444' }
+      ]);
         setLastUpdate(new Date().toLocaleString());
       }
     } catch (err) {
@@ -607,7 +616,6 @@ function App() {
                 selectedMetric={selectedMetric}
                 setSelectedMetric={setSelectedMetric}
               />
-              
               <div className="grid grid-cols-1 gap-6">
                 <AnomalyPieChart data={distributionData} />
                 <PeakHoursSpeedometer />
