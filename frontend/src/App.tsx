@@ -324,7 +324,7 @@ const AnomalyPieChart: React.FC<AnomalyPieChartProps> = ({ data }) => {
           </Pie>
           <Tooltip
             contentStyle={{
-              backgroundColor: '#1F2937',
+              backgroundColor: 'white',
               border: '1px solid #374151',
               borderRadius: '8px',
               color: '#F9FAFB'
