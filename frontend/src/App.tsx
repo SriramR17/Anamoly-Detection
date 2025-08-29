@@ -649,7 +649,7 @@ function App() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-6">
             {lastUpdate && <div className="text-sm text-gray-400">Last updated: {lastUpdate}</div>}
 
-            <button
+            {/* <button
               onClick={handleRunDetection}
               disabled={loading}
               className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -660,18 +660,7 @@ function App() {
             >
               {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
               <span>{loading ? 'Running...' : 'Run Detection'}</span>
-            </button>
-
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-green-400 font-medium text-sm">System Active</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
-                <span className="text-blue-400 font-medium text-sm">Live Monitoring</span>
-              </div>
-            </div>
+            </button> */}
           </div>
         </div>
 
