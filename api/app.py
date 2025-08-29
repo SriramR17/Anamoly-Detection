@@ -164,7 +164,7 @@ async def get_predictions():
         
         return {
             "status": "success",
-            "data": records[:100],  # Limit to first 100 for simplicity
+            "data": records,  # Limit to first 100 for simplicity
             "total": len(records)
         }
     except Exception as e:
