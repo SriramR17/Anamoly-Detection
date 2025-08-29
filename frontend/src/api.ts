@@ -7,9 +7,40 @@ const api = axios.create({
   timeout: 10000,
 });
 
+export interface DashboardData {
+  total_samples: number;
+  total_anomalies: number;
+  anomaly_rate: number;
+  last_updated: string;
+  recent_anomalies?: any[];
+}
+
+export interface Prediction {
+  Predicted_Anomaly: number;
+  Anomaly_Probability?: number;
+  CellName?: string;
+  Time?: string;
+  [key: string]: any;
+}
+
+export interface Statistics {
+  total_records: number;
+  anomalies: number;
+  normal: number;
+  avg_anomaly_prob?: number;
+  max_anomaly_prob?: number;
+  min_anomaly_prob?: number;
+}
+
+export interface ApiResponse<T> {
+  status: string;
+  data: T;
+  message?: string;
+}
+
 export const apiService = {
   // Get dashboard overview data
-  getDashboard: async () => {
+  getDashboard: async (): Promise<ApiResponse<DashboardData>> => {
     try {
       const response = await api.get('/api/dashboard');
       return response.data;
@@ -20,7 +51,7 @@ export const apiService = {
   },
 
   // Get all predictions
-  getPredictions: async () => {
+  getPredictions: async (): Promise<ApiResponse<Prediction[]>> => {
     try {
       const response = await api.get('/api/predictions');
       return response.data;
@@ -31,7 +62,7 @@ export const apiService = {
   },
 
   // Get statistics
-  getStats: async () => {
+  getStats: async (): Promise<ApiResponse<Statistics>> => {
     try {
       const response = await api.get('/api/stats');
       return response.data;
@@ -42,7 +73,7 @@ export const apiService = {
   },
 
   // Run anomaly detection
-  runDetection: async () => {
+  runDetection: async (): Promise<ApiResponse<any>> => {
     try {
       const response = await api.post('/api/run-detection');
       return response.data;
