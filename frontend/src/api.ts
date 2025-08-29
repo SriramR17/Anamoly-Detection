@@ -46,6 +46,17 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+export interface BestModelData {
+  [modelName: string]: {
+    Accuracy_Mean: number;
+    F1_Mean: number;
+    Precision_Mean: number;
+    Recall_Mean: number;
+  };
+}
+
+
+
 export const apiService = {
   getDashboard: async (): Promise<ApiResponse<DashboardData>> => {
     const response = await api.get<ApiResponse<DashboardData>>('/api/dashboard');
@@ -66,6 +77,11 @@ export const apiService = {
     const response = await api.post<ApiResponse<any>>('/api/run-detection');
     return response.data;
   },
+
+  getBestModels: async (): Promise<ApiResponse<BestModelData[]>> => {
+    const response = await api.get<ApiResponse<BestModelData[]>>('/api/best_models');
+    return response.data;
+  },
 };
 
 // Normalize: your endpoint returns raw metrics; wrap it into ApiResponse
@@ -80,4 +96,7 @@ export const evaluationService = {
     }
   }
 };
+
+
+
 

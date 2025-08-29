@@ -126,14 +126,14 @@ async def get_best_models():
         # Read the data from the CSV file into a pandas DataFrame.
         df = pd.read_csv(csv_file_path)
 
-        best_models_df = df.sort_values(by="Accuracy_Mean", ascending=False).head(5)
+        best_models_df = df.sort_values(by="Accuracy_Mean", ascending=False).head(11)
                 
         formatted_data = []
         for _, row in best_models_df.iterrows():
 
             model_name = row['Algorithm']
                         
-            metrics = row.drop('Algorithm').to_dict()
+            metrics = row[['Accuracy_Mean', 'F1_Mean', 'Precision_Mean', 'Recall_Mean']].to_dict()
                         
             model_entry = {model_name: metrics}
                         
@@ -143,7 +143,7 @@ async def get_best_models():
             
         return {
             "status": "success",
-            "data": formatted_data  # Place the newly formatted list here.
+            "data": formatted_data  
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading best models: {str(e)}")

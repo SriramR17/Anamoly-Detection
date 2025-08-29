@@ -24,7 +24,7 @@ import {
 
 import PredictionsTable from './components/PredictionsTable';
 import Statistics from './components/Statistics';
-import { apiService, evaluationService, DashboardData, EvaluationMetricsData } from './api';
+import { apiService, evaluationService, DashboardData, EvaluationMetricsData, BestModelData } from './api';
 
 // ---------- Local types ----------
 type IconType = React.ElementType;
@@ -84,20 +84,8 @@ type TopNetworksProps = {
   setSelectedNetwork: (v: number | null) => void;
 };
 
-// ---------- Static data ----------
-const algorithmPerformanceData: AlgoPerf[] = [
-  { name: 'CatBoost', accuracy: 98.93, f1: 98.03, precision: 99.51, recall: 96.59 },
-  { name: 'LightGBM', accuracy: 98.71, f1: 97.85, precision: 99.23, recall: 96.52 },
-  { name: 'XGBoost', accuracy: 98.45, f1: 97.62, precision: 98.87, recall: 96.41 },
-  { name: 'RandomForest', accuracy: 97.89, f1: 96.94, precision: 98.32, recall: 95.63 },
-  { name: 'GradientBoosting', accuracy: 97.34, f1: 96.41, precision: 97.89, recall: 95.01 },
-  { name: 'Extra Trees', accuracy: 96.87, f1: 95.92, precision: 97.45, recall: 94.46 },
-  { name: 'DecisionTree', accuracy: 95.23, f1: 94.18, precision: 96.12, recall: 92.35 },
-  { name: 'AdaBoost', accuracy: 94.67, f1: 93.54, precision: 95.78, recall: 91.42 },
-  { name: 'KNN', accuracy: 92.15, f1: 90.89, precision: 93.67, recall: 88.34 },
-  { name: 'LogisticRegression', accuracy: 89.34, f1: 87.92, precision: 91.23, recall: 84.87 },
-  { name: 'GaussianNB', accuracy: 85.67, f1: 83.45, precision: 87.89, recall: 79.56 }
-];
+
+
 
 const topAnomalyNetworks: NetworkInfo[] = [
   { name: 'Network-Alpha-001', totalSamples: 125847, anomaliesDetected: 2341, anomalyRate: 1.86, lastUpdate: '2 min ago', recentAnomaly: 'Port Scan Attack', severity: 'high' },
@@ -517,10 +505,13 @@ function App() {
     detectionRate: '0%',
     responseTime: '0ms',
   });
+  const [algorithmPerformanceData, setAlgorithmPerformanceData] = useState<AlgoPerf[]>([]);
+  const [isLoadingAlgorithms, setIsLoadingAlgorithms] = useState(true);
 
   useEffect(() => {
     fetchDashboardData();
     fetchEvaluationMetrics();
+    fetchAlgorithmData();
   }, []);
 
   const fetchDashboardData = async () => {
@@ -569,6 +560,37 @@ function App() {
       setEvaluationMetrics(formatted);
     } catch (err) {
       console.error('Error fetching evaluation metrics:', err);
+    }
+  };
+
+
+  const fetchAlgorithmData = async () => {
+    try {
+      setIsLoadingAlgorithms(true);
+      const result = await apiService.getBestModels();
+      
+      if (result.status === 'success') {
+        // Transform the backend data to match your AlgoPerf interface
+        const transformedData: AlgoPerf[] = result.data.map((modelObj) => {
+          const modelName = Object.keys(modelObj)[0]; // Get the model name (key)
+          const metrics = modelObj[modelName]; // Get the metrics (value)
+          
+          return {
+            name: modelName,
+            accuracy: parseFloat((metrics.Accuracy_Mean * 100).toFixed(2)),
+            f1: parseFloat((metrics.F1_Mean * 100).toFixed(2)), 
+            precision: parseFloat((metrics.Precision_Mean * 100).toFixed(2)),
+            recall: parseFloat((metrics.Recall_Mean * 100).toFixed(2))
+          };
+        });
+        
+        setAlgorithmPerformanceData(transformedData);
+        console.log('Transformed algorithm data:', transformedData);
+      }
+    } catch (err) {
+      console.error('Error fetching algorithm data:', err);
+    } finally {
+      setIsLoadingAlgorithms(false);
     }
   };
   
