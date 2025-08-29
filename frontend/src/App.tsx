@@ -607,6 +607,7 @@ function App() {
                 selectedMetric={selectedMetric}
                 setSelectedMetric={setSelectedMetric}
               />
+              
               <div className="grid grid-cols-1 gap-6">
                 <AnomalyPieChart data={distributionData} />
                 <PeakHoursSpeedometer />

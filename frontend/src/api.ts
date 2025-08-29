@@ -72,9 +72,7 @@ export const apiService = {
 export const evaluationService = {
   getEvaluationMetrics: async (): Promise<EvaluationMetricsData> => {
     try {
-      const response = await api.get<EvaluationMetricsData>(
-        '/api/get_evaluation_metrics'
-      );
+      const response = await api.get<EvaluationMetricsData>('/api/get_evaluation_metrics');
       return response.data; // ✅ directly the metrics
     } catch (error) {
       console.error('Error fetching Evaluation Metrics Data:', error);
