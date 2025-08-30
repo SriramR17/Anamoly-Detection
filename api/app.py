@@ -199,31 +199,6 @@ async def get_statistics():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading statistics: {str(e)}")
 
-@app.post("/api/run-detection")
-async def run_detection():
-    """Trigger anomaly detection pipeline"""
-    try:
-        # Import and run the detection
-        from main import run_anomaly_detection
-        
-        results = run_anomaly_detection()
-        
-        if results:
-            return {
-                "status": "success",
-                "message": "Anomaly detection completed successfully",
-                "data": {
-                    "best_model": results['model_results']['best_model_name'],
-                    "anomalies_detected": int(results['predictions'].sum()),
-                    "total_samples": len(results['predictions'])
-                }
-            }
-        else:
-            return {"status": "error", "message": "Anomaly detection failed"}
-            
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error running detection: {str(e)}")
-
 
 
 if __name__ == "__main__":

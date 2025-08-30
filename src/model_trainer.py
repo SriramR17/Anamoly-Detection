@@ -469,63 +469,6 @@ def get_or_train_model(X_train, y_train, model_path=None, force_retrain=False, s
     return results
 
 
-def test_all_algorithms(X_train, y_train, X_test=None, y_test=None, save_results=True):
-    """
-    Comprehensive testing of all available ML algorithms for finding the best one.
-    
-    Args:
-        X_train: Training features
-        y_train: Training labels
-        X_test: Test features (optional, for final evaluation)
-        y_test: Test labels (optional, for final evaluation)
-        save_results: Whether to save results and visualizations
-        
-    Returns:
-        dict: Complete results including all models and performance metrics
-    """
-    print("\n" + "="*80)
-    print("🧪 COMPREHENSIVE ML ALGORITHM TESTING")
-    print("🎯 Goal: Find the algorithm with highest accuracy")
-    print("="*80)
-    
-    # Train all models with focus on accuracy
-    results = train_models(X_train, y_train, focus_on_accuracy=True)
-    
-    # Create performance visualization and save results
-    if save_results:
-        plot_and_save_results(results['scores'], focus_metric='accuracy')
-    
-    # If test data is provided, evaluate the best model
-    if X_test is not None and y_test is not None:
-        print("\n🔍 FINAL EVALUATION ON TEST SET")
-        print("-" * 40)
-        best_model = results['best_model']
-        test_metrics = evaluate_model(best_model, X_test, y_test)
-        results['test_metrics'] = test_metrics
-    
-    print("\n" + "="*80)
-    print("✅ ALGORITHM TESTING COMPLETE")
-    print(f"🏆 RECOMMENDED ALGORITHM: {results['best_model_name']}")
-    print("="*80)
-    
-    return results
-
-
-def force_retrain_model(X_train, y_train, model_path=None):
-    """
-    Force retrain and save a new model, overwriting any existing one.
-    
-    Args:
-        X_train: Training features
-        y_train: Training labels
-        model_path: Path to save the model (defaults to project root)
-        
-    Returns:
-        dict: Results including trained models and scores
-    """
-    return get_or_train_model(X_train, y_train, model_path, force_retrain=True)
-
-
 if __name__ == "__main__":
     MODEL_PATH = 'models/best_model.joblib'
     
@@ -555,9 +498,7 @@ if __name__ == "__main__":
         
         # Now that we have a model (either loaded or newly trained), make predictions
         predictions, probabilities = make_predictions(best_model, X_test)
-        
-       
-        
+
         print("✓ Model training and prediction process complete.")
         
     except Exception as e:

@@ -73,10 +73,6 @@ export const apiService = {
     return response.data;
   },
 
-  runDetection: async (): Promise<ApiResponse<any>> => {
-    const response = await api.post<ApiResponse<any>>('/api/run-detection');
-    return response.data;
-  },
 
   getBestModels: async (): Promise<ApiResponse<BestModelData[]>> => {
     const response = await api.get<ApiResponse<BestModelData[]>>('/api/best_models');
