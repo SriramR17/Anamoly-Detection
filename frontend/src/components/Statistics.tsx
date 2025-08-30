@@ -321,87 +321,10 @@ const Statistics: React.FC = () => {
         </div>
       )}
 
-      {/* Additional Metrics */}
-      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
-          <Activity className="mr-2 h-5 w-5 text-purple-400" />
-          Additional Metrics
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gray-700 rounded-lg p-4">
-            <div className="text-gray-400 text-sm mb-1">Anomaly-to-Normal Ratio</div>
-            <div className="text-xl font-bold text-white">
-              {stats.normal > 0 ? `1:${(stats.normal / Math.max(stats.anomalies, 1)).toFixed(1)}` : 'N/A'}
-            </div>
-          </div>
-          <div className="bg-gray-700 rounded-lg p-4">
-            <div className="text-gray-400 text-sm mb-1">Data Quality Score</div>
-            <div className="text-xl font-bold text-green-400">
-              {stats.total_records > 0 ? 'Good' : 'No Data'}
-            </div>
-          </div>
-          <div className="bg-gray-700 rounded-lg p-4">
-            <div className="text-gray-400 text-sm mb-1">Sample Size Category</div>
-            <div className="text-xl font-bold text-blue-400">
-              {stats.total_records > 10000 ? 'Large' : 
-               stats.total_records > 1000 ? 'Medium' : 
-               stats.total_records > 0 ? 'Small' : 'Empty'}
-            </div>
-          </div>
-        </div>
-      </div>
+      
 
-      {/* Insights Section */}
-      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
-          <Lightbulb className="mr-2 h-5 w-5 text-yellow-400" />
-          Key Insights
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {anomalyRate > 10 && (
-            <InsightCard
-              type="warning"
-              title="High Anomaly Rate Detected"
-              description={`${anomalyRate.toFixed(1)}% anomaly rate is above normal. Review system health and investigate potential issues.`}
-            />
-          )}
-          {anomalyRate < 1 && stats.total_records > 0 && (
-            <InsightCard
-              type="success"
-              title="System Appears Stable"
-              description={`Low anomaly rate of ${anomalyRate.toFixed(1)}% indicates normal system operation.`}
-            />
-          )}
-          {stats.total_records === 0 && (
-            <InsightCard
-              type="info"
-              title="No Data Processed Yet"
-              description="Run anomaly detection to generate statistics and insights."
-            />
-          )}
-          {stats.total_records > 0 && (
-            <InsightCard
-              type="info"
-              title="Processing Complete"
-              description={`Successfully processed ${stats.total_records.toLocaleString()} samples for analysis.`}
-            />
-          )}
-          {stats.total_records > 50000 && (
-            <InsightCard
-              type="success"
-              title="Large Dataset Analyzed"
-              description="Large sample size provides high confidence in detection accuracy."
-            />
-          )}
-          {anomalyRate > 0 && anomalyRate < 5 && (
-            <InsightCard
-              type="success"
-              title="Optimal Detection Range"
-              description="Anomaly rate within expected range for network monitoring systems."
-            />
-          )}
-        </div>
-      </div>
+      
+      
     </div>
   );
 };

@@ -19,7 +19,7 @@ app = FastAPI(title="Anomaly Detection API", version="1.0.0")
 # Enable CORS for React app
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React dev server
+    allow_origins=["http://localhost:5173"],  # React dev server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -73,7 +73,40 @@ async def get_dashboard_data():
             }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading best models: {str(e)}")
-        
+
+@app.get("/api/get_evaluation_metrics")
+async def get_evaluation_metrics():
+    try:
+        csv_file_path = Path(__file__).parent.parent / 'results' / 'algorithm_comparison_results.csv'
+        if not csv_file_path.exists():
+            raise HTTPException(status_code=404, detail="Results file not found.")
+
+        df = pd.read_csv(csv_file_path)
+
+        # --- FIX ---
+        # Find the index of the row with the highest 'Accuracy_Mean'
+        max_acc_index = df['Accuracy_Mean'].idxmax()
+
+        metrics = df.loc[max_acc_index]
+
+        # Now the columns match
+        return {
+            "status": "success",
+            "data": {
+                "Accuracy": metrics['Accuracy_Mean'],
+                "F1_Score": metrics['F1_Mean'],
+                "Precision": metrics['Precision_Mean'],
+                "Recall": metrics['Recall_Mean']
+            }
+        }
+
+    except KeyError as e:
+        # Specific error for missing columns
+        raise HTTPException(status_code=500, detail=f"A required column is missing from the CSV: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error loading Metrics: {str(e)}")
+
+
 @app.get("/api/best_models")
 async def get_best_models():
     """
@@ -93,14 +126,14 @@ async def get_best_models():
         # Read the data from the CSV file into a pandas DataFrame.
         df = pd.read_csv(csv_file_path)
 
-        best_models_df = df.sort_values(by="Accuracy_Mean", ascending=False).head(5)
+        best_models_df = df.sort_values(by="Accuracy_Mean", ascending=False).head(11)
                 
         formatted_data = []
         for _, row in best_models_df.iterrows():
 
             model_name = row['Algorithm']
                         
-            metrics = row.drop('Algorithm').to_dict()
+            metrics = row[['Accuracy_Mean', 'F1_Mean', 'Precision_Mean', 'Recall_Mean']].to_dict()
                         
             model_entry = {model_name: metrics}
                         
@@ -110,7 +143,7 @@ async def get_best_models():
             
         return {
             "status": "success",
-            "data": formatted_data  # Place the newly formatted list here.
+            "data": formatted_data  
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading best models: {str(e)}")
@@ -131,7 +164,7 @@ async def get_predictions():
         
         return {
             "status": "success",
-            "data": records[:100],  # Limit to first 100 for simplicity
+            "data": records,  # Limit to first 100 for simplicity
             "total": len(records)
         }
     except Exception as e:
@@ -166,30 +199,7 @@ async def get_statistics():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading statistics: {str(e)}")
 
-@app.post("/api/run-detection")
-async def run_detection():
-    """Trigger anomaly detection pipeline"""
-    try:
-        # Import and run the detection
-        from main import run_anomaly_detection
-        
-        results = run_anomaly_detection()
-        
-        if results:
-            return {
-                "status": "success",
-                "message": "Anomaly detection completed successfully",
-                "data": {
-                    "best_model": results['model_results']['best_model_name'],
-                    "anomalies_detected": int(results['predictions'].sum()),
-                    "total_samples": len(results['predictions'])
-                }
-            }
-        else:
-            return {"status": "error", "message": "Anomaly detection failed"}
-            
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error running detection: {str(e)}")
+
 
 if __name__ == "__main__":
     import uvicorn

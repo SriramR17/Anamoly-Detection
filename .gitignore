@@ -7,6 +7,7 @@ __pycache__/
 test.ipynb
 #node
 node_modules
+catboost_info
 # C extensions
 *.so
 node_modules/

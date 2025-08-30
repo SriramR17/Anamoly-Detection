@@ -1,3 +1,4 @@
+// api.ts
 import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:8000';
@@ -13,6 +14,13 @@ export interface DashboardData {
   anomaly_rate: number;
   last_updated: string;
   recent_anomalies?: any[];
+}
+
+export interface EvaluationMetricsData {
+  Accuracy: number;
+  F1_Score: number;
+  Precision: number;
+  Recall: number;
 }
 
 export interface Prediction {
@@ -38,50 +46,53 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+export interface BestModelData {
+  [modelName: string]: {
+    Accuracy_Mean: number;
+    F1_Mean: number;
+    Precision_Mean: number;
+    Recall_Mean: number;
+  };
+}
+
+
+
 export const apiService = {
-  // Get dashboard overview data
   getDashboard: async (): Promise<ApiResponse<DashboardData>> => {
-    try {
-      const response = await api.get('/api/dashboard');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      throw error;
-    }
+    const response = await api.get<ApiResponse<DashboardData>>('/api/dashboard');
+    return response.data;
   },
 
-  // Get all predictions
   getPredictions: async (): Promise<ApiResponse<Prediction[]>> => {
-    try {
-      const response = await api.get('/api/predictions');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching predictions:', error);
-      throw error;
-    }
+    const response = await api.get<ApiResponse<Prediction[]>>('/api/predictions');
+    return response.data;
   },
 
-  // Get statistics
   getStats: async (): Promise<ApiResponse<Statistics>> => {
-    try {
-      const response = await api.get('/api/stats');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching statistics:', error);
-      throw error;
-    }
+    const response = await api.get<ApiResponse<Statistics>>('/api/stats');
+    return response.data;
   },
 
-  // Run anomaly detection
-  runDetection: async (): Promise<ApiResponse<any>> => {
+
+  getBestModels: async (): Promise<ApiResponse<BestModelData[]>> => {
+    const response = await api.get<ApiResponse<BestModelData[]>>('/api/best_models');
+    return response.data;
+  },
+};
+
+// Normalize: your endpoint returns raw metrics; wrap it into ApiResponse
+export const evaluationService = {
+  getEvaluationMetrics: async (): Promise<EvaluationMetricsData> => {
     try {
-      const response = await api.post('/api/run-detection');
-      return response.data;
+      const response = await api.get<EvaluationMetricsData>('/api/get_evaluation_metrics');
+      return response.data; // ✅ directly the metrics
     } catch (error) {
-      console.error('Error running detection:', error);
+      console.error('Error fetching Evaluation Metrics Data:', error);
       throw error;
     }
   }
 };
 
-export default apiService;
+
+
+
