@@ -4,7 +4,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts';
-import GaugeChart from 'react-gauge-chart';
+import GaugeChart from "react-gauge-chart";
 import {
   Activity,
   AlertTriangle,
@@ -24,7 +24,7 @@ import {
 
 import PredictionsTable from './components/PredictionsTable';
 import Statistics from './components/Statistics';
-import { apiService, evaluationService, DashboardData, EvaluationMetricsData, BestModelData } from './api';
+import { apiService, evaluationService, DashboardData, BestModelData } from './api';
 
 // ---------- Local types ----------
 type IconType = React.ElementType;
@@ -47,8 +47,6 @@ type StatsCardProps = {
 
 type EvaluationMetricsProps = {
   metrics: MetricItem[];
-  selectedMetric: number | null;
-  setSelectedMetric: (v: number | null) => void;
 };
 
 type AlgoPerf = { name: string; accuracy: number; f1: number; precision: number; recall: number };
@@ -84,9 +82,7 @@ type TopNetworksProps = {
   setSelectedNetwork: (v: number | null) => void;
 };
 
-
-
-
+// ---------- Sample data ----------
 const topAnomalyNetworks: NetworkInfo[] = [
   { name: 'Network-Alpha-001', totalSamples: 125847, anomaliesDetected: 2341, anomalyRate: 1.86, lastUpdate: '2 min ago', recentAnomaly: 'Port Scan Attack', severity: 'high' },
   { name: 'Network-Beta-002', totalSamples: 98563, anomaliesDetected: 1897, anomalyRate: 1.92, lastUpdate: '5 min ago', recentAnomaly: 'DDoS Attempt', severity: 'high' },
@@ -96,9 +92,8 @@ const topAnomalyNetworks: NetworkInfo[] = [
   { name: 'Network-Zeta-006', totalSamples: 54321, anomaliesDetected: 987, anomalyRate: 1.82, lastUpdate: '18 min ago', recentAnomaly: 'XSS Attack', severity: 'low' }
 ];
 
-
 // ---------- UI Components ----------
-const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon: Icon, trend, color = 'blue' }) => {
+const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon: Icon, color = 'blue' }) => {
   const colorMap: Record<NonNullable<StatsCardProps['color']>, string> = {
     blue: 'from-blue-500 to-blue-600',
     red: 'from-red-500 to-red-600',
@@ -122,89 +117,67 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon: Icon, trend, 
   );
 };
 
-const EvaluationMetrics: React.FC<EvaluationMetricsProps> = ({ metrics, selectedMetric, setSelectedMetric }) => {
-  const [animationProgress, setAnimationProgress] = useState(0);
+// ---------- Metric Gauge (new) ----------
+type MetricGaugeProps = {
+  name: string;
+  value: number;
+  color: string;
+};
 
-  useEffect(() => {
-    const timer = setTimeout(() => setAnimationProgress(100), 500);
-    return () => clearTimeout(timer);
-  }, []);
+const MetricGauge: React.FC<MetricGaugeProps> = ({ name, value }) => {
+  // Needle color logic
+  const getNeedleColor = (val: number) => {
+    if (val >= 90) return "#10B981";   // green
+    if (val >= 70) return "#F59E0B";   // yellow
+    return "#EF4444";                  // red
+  };
 
   return (
-    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 flex flex-col items-center w-full h-full">
+      <div className="text-white font-medium mb-4">{name}</div>
+      <GaugeChart
+        id={`gauge-${name}`}
+        nrOfLevels={5}                              // 5 thick segments
+        colors={["#10B981", "#F59E0B", "#EF4444"]}  // arc: green → yellow → red
+        arcWidth={0.3}
+        percent={value / 100}
+        textColor="#F9FAFB"
+        needleColor={getNeedleColor(value)}         // dynamic needle color
+        needleBaseColor="#374151"
+        formatTextValue={() => `${value.toFixed(2)}%`}
+        style={{ width: "100%", height: "180px" }}
+      />
+    </div>
+  );
+};
+
+
+
+
+// ---------- Evaluation Metrics (now gauges) ----------
+const EvaluationMetrics: React.FC<EvaluationMetricsProps> = ({ metrics }) => {
+  return (
+    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 h-full">
       <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
         <TrendingUp className="mr-2 h-5 w-5 text-blue-400" />
         Evaluation Metrics
       </h3>
-      <div className="space-y-6">
-        {metrics.map((metric, idx) => {
-          const IconComponent = metric.icon;
-          const isSelected = selectedMetric === idx;
-          return (
-            <div
-              key={idx}
-              className={`group cursor-pointer p-4 rounded-lg transition-all duration-300 ${
-                isSelected ? 'bg-gray-700 ring-2 ring-blue-500' : 'hover:bg-gray-700'
-              }`}
-              onClick={() => setSelectedMetric(isSelected ? null : idx)}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 rounded-lg" style={{ backgroundColor: `${metric.color}20` }}>
-                    <IconComponent className="w-5 h-5" style={{ color: metric.color }} />
-                  </div>
-                  <span className="text-white font-medium">{metric.name}</span>
-                </div>
-                <div className="text-right">
-                  <div className="text-white font-bold">{metric.value.toFixed(2)}%</div>
-                  <div className="text-gray-400 text-sm">± {metric.deviation}%</div>
-                </div>
-              </div>
-
-              <div className="relative">
-                <div className="w-full bg-gray-700 rounded-full h-4 overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-1500 ease-out relative"
-                    style={{
-                      width: `${(metric.value * animationProgress) / 100}%`,
-                      backgroundColor: metric.color,
-                      boxShadow: isSelected ? `0 0 20px ${metric.color}50` : 'none'
-                    }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-pulse"></div>
-                  </div>
-                </div>
-                <div
-                  className="absolute top-0 h-4 w-1 bg-white rounded-full shadow-lg transition-all duration-1500"
-                  style={{
-                    left: `${(metric.value * animationProgress) / 100}%`,
-                    transform: 'translateX(-50%)'
-                  }}
-                />
-              </div>
-
-              {isSelected && (
-                <div className="mt-4 p-3 bg-gray-600 rounded-lg animate-fadeIn">
-                  <div className="text-sm text-gray-300">
-                    <div className="flex justify-between mb-1">
-                      <span>Best Performance:</span>
-                      <span className="text-green-400">{(metric.value + metric.deviation).toFixed(2)}%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Worst Performance:</span>
-                      <span className="text-red-400">{(metric.value - metric.deviation).toFixed(2)}%</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+        {metrics.map((metric, idx) => (
+          <MetricGauge
+            key={idx}
+            name={metric.name}
+            value={metric.value}
+            color={metric.color}
+          />
+        ))}
       </div>
     </div>
   );
 };
 
+
+// ---------- Algorithm Comparison ----------
 const AlgorithmComparison: React.FC<AlgorithmComparisonProps> = ({ data, selectedAlgorithm, setSelectedAlgorithm }) => {
   return (
     <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
@@ -265,13 +238,8 @@ const AlgorithmComparison: React.FC<AlgorithmComparisonProps> = ({ data, selecte
   );
 };
 
+// ---------- Anomaly Pie Chart ----------
 const AnomalyPieChart: React.FC<AnomalyPieChartProps> = ({ data }) => {
-  const [pieAnimation, setPieAnimation] = useState(0);
-  useEffect(() => {
-    const timer = setTimeout(() => setPieAnimation(100), 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
   const RADIAN = Math.PI / 180;
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
@@ -301,8 +269,6 @@ const AnomalyPieChart: React.FC<AnomalyPieChartProps> = ({ data }) => {
             outerRadius={100}
             fill="#8884d8"
             dataKey="value"
-            animationBegin={0}
-            animationDuration={2000}
             startAngle={90}
             endAngle={450}
           >
@@ -336,14 +302,16 @@ const AnomalyPieChart: React.FC<AnomalyPieChartProps> = ({ data }) => {
   );
 };
 
-const PeakHoursSpeedometer: React.FC = () => {
-  const [gaugeValue, setGaugeValue] = useState(0);
+// ---------- Peak Hours Clock ----------
+const PeakHoursClock: React.FC = () => {
   const peakHour = 14; // 2 PM
+  const [rotation, setRotation] = useState(0);
 
   useEffect(() => {
-    const timer = setTimeout(() => setGaugeValue(peakHour / 24), 1500);
+    const deg = (peakHour % 12) * 30;
+    const timer = setTimeout(() => setRotation(deg), 1000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [peakHour]);
 
   return (
     <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
@@ -352,32 +320,43 @@ const PeakHoursSpeedometer: React.FC = () => {
         Peak Anomaly Hours
       </h3>
       <div className="flex justify-center">
-        <div style={{ width: '280px', height: '200px' }}>
-          <GaugeChart
-            id="peak-hours-gauge"
-            nrOfLevels={4}
-            colors={['#10B981', '#F59E0B', '#EF4444', '#7C3AED']}
-            arcWidth={0.3}
-            percent={gaugeValue}
-            textColor="#F9FAFB"
-            needleColor="#9CA3AF"
-            needleBaseColor="#374151"
-            hideText={false}
-            formatTextValue={() => `${peakHour}:00`}
-            animDelay={0}
-            animateDuration={2000}
+        <div className="relative w-60 h-60 rounded-full border-4 border-gray-600 flex items-center justify-center">
+          {[...Array(12)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-4 bg-gray-400"
+              style={{
+                top: "6px",
+                left: "50%",
+                transform: `rotate(${i * 30}deg) translateX(-50%)`,
+                transformOrigin: "center 120px",
+              }}
+            />
+          ))}
+          <div
+            className="absolute w-1 bg-orange-400 origin-bottom rounded"
+            style={{
+              height: "40%",
+              bottom: "50%",
+              left: "50%",
+              transform: `translateX(-50%) rotate(${rotation}deg)`,
+              transition: "transform 1s ease-in-out",
+            }}
           />
         </div>
       </div>
       <div className="text-center mt-4">
         <div className="text-3xl font-bold text-white">{peakHour}:00</div>
         <div className="text-gray-400">Peak Anomaly Detection Time</div>
-        <div className="mt-2 text-sm text-orange-400">85% of daily anomalies occur during this hour</div>
+        <div className="mt-2 text-sm text-orange-400">
+          85% of daily anomalies occur during this hour
+        </div>
       </div>
     </div>
   );
 };
 
+// ---------- Network Tile ----------
 const NetworkTile: React.FC<NetworkTileProps> = ({ network, index, isSelected, onClick }) => {
   const severityColors: Record<Severity, string> = {
     high: 'border-red-500 bg-red-500/10 shadow-red-500/20',
@@ -464,6 +443,7 @@ const NetworkTile: React.FC<NetworkTileProps> = ({ network, index, isSelected, o
   );
 };
 
+// ---------- Top Networks ----------
 const TopNetworks: React.FC<TopNetworksProps> = ({ networks, selectedNetwork, setSelectedNetwork }) => (
   <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
     <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
@@ -487,7 +467,6 @@ const TopNetworks: React.FC<TopNetworksProps> = ({ networks, selectedNetwork, se
 // ---------- Main App ----------
 function App() {
   const [evaluationMetrics, setEvaluationMetrics] = useState<MetricItem[]>([]);
-  const [selectedMetric, setSelectedMetric] = useState<number | null>(null);
   const [selectedAlgorithm, setSelectedAlgorithm] = useState<number | null>(null);
   const [selectedNetwork, setSelectedNetwork] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'predictions' | 'statistics'>('dashboard');
@@ -529,11 +508,10 @@ function App() {
         const anomalyRate = result.data.anomaly_rate;
         const normalRate = 100 - anomalyRate;
 
-
         setDistributionData([
-        { name: 'Normal Traffic', value: parseFloat(normalRate.toFixed(2)), color: '#10B981' },
-        { name: 'Anomalous Traffic', value: parseFloat(anomalyRate.toFixed(2)), color: '#EF4444' }
-      ]);
+          { name: 'Normal Traffic', value: parseFloat(normalRate.toFixed(2)), color: '#10B981' },
+          { name: 'Anomalous Traffic', value: parseFloat(anomalyRate.toFixed(2)), color: '#EF4444' }
+        ]);
         setLastUpdate(new Date().toLocaleString());
       }
     } catch (err) {
@@ -544,37 +522,29 @@ function App() {
   const fetchEvaluationMetrics = async () => {
     try {
       const result = await evaluationService.getEvaluationMetrics();
-  
-      console.log("Raw Evaluation Metrics API response:", result);
-  
-      // handle both wrapped {status, data} and raw {}
       const raw = (result as any)?.data ?? result;
-  
+
       const formatted = [
         { name: 'Accuracy', value: Number((raw?.Accuracy ?? 0) * 100), deviation: 0.15, color: '#10B981', icon: Target },
         { name: 'F1-Score', value: Number((raw?.F1_Score ?? 0) * 100), deviation: 0.29, color: '#8B5CF6', icon: BarChart3 },
         { name: 'Precision', value: Number((raw?.Precision ?? 0) * 100), deviation: 0.13, color: '#3B82F6', icon: Search },
         { name: 'Recall', value: Number((raw?.Recall ?? 0) * 100), deviation: 0.53, color: '#F59E0B', icon: Eye },
       ];
-  
       setEvaluationMetrics(formatted);
     } catch (err) {
       console.error('Error fetching evaluation metrics:', err);
     }
   };
 
-
   const fetchAlgorithmData = async () => {
     try {
       setIsLoadingAlgorithms(true);
       const result = await apiService.getBestModels();
-      
+
       if (result.status === 'success') {
-        // Transform the backend data to match your AlgoPerf interface
         const transformedData: AlgoPerf[] = result.data.map((modelObj) => {
-          const modelName = Object.keys(modelObj)[0]; // Get the model name (key)
-          const metrics = modelObj[modelName]; // Get the metrics (value)
-          
+          const modelName = Object.keys(modelObj)[0];
+          const metrics = modelObj[modelName];
           return {
             name: modelName,
             accuracy: parseFloat((metrics.Accuracy_Mean * 100).toFixed(2)),
@@ -583,9 +553,8 @@ function App() {
             recall: parseFloat((metrics.Recall_Mean * 100).toFixed(2))
           };
         });
-        
+
         setAlgorithmPerformanceData(transformedData);
-        console.log('Transformed algorithm data:', transformedData);
       }
     } catch (err) {
       console.error('Error fetching algorithm data:', err);
@@ -593,7 +562,6 @@ function App() {
       setIsLoadingAlgorithms(false);
     }
   };
-  
 
   const handleRunDetection = async () => {
     setLoading(true);
@@ -625,22 +593,18 @@ function App() {
           <div className="space-y-8">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatsCard title="Total Samples" value={stats.totalSamples} icon={Database} trend={12.5} color="blue" />
-              <StatsCard title="Anomalies Detected" value={stats.anomaliesDetected} icon={AlertTriangle} trend={-8.3} color="red" />
-              <StatsCard title="Detection Rate" value={stats.detectionRate} icon={TrendingUp} trend={0.15} color="green" />
-              <StatsCard title="Response Time" value={stats.responseTime} icon={Zap} trend={-15.2} color="purple" />
+              <StatsCard title="Total Samples" value={stats.totalSamples} icon={Database} color="blue" />
+              <StatsCard title="Anomalies Detected" value={stats.anomaliesDetected} icon={AlertTriangle} color="red" />
+              <StatsCard title="Detection Rate" value={stats.detectionRate} icon={TrendingUp} color="green" />
+              <StatsCard title="Response Time" value={stats.responseTime} icon={Zap} color="purple" />
             </div>
 
             {/* Evaluation Metrics + Right Column */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <EvaluationMetrics
-                metrics={evaluationMetrics}
-                selectedMetric={selectedMetric}
-                setSelectedMetric={setSelectedMetric}
-              />
+              <EvaluationMetrics metrics={evaluationMetrics} />
               <div className="grid grid-cols-1 gap-6">
                 <AnomalyPieChart data={distributionData} />
-                <PeakHoursSpeedometer />
+                <PeakHoursClock />
               </div>
             </div>
 
@@ -679,19 +643,6 @@ function App() {
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-6">
             {lastUpdate && <div className="text-sm text-gray-400">Last updated: {lastUpdate}</div>}
-
-            {/* <button
-              onClick={handleRunDetection}
-              disabled={loading}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                loading
-                  ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white'
-              }`}
-            >
-              {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-              <span>{loading ? 'Running...' : 'Run Detection'}</span>
-            </button> */}
           </div>
         </div>
 
@@ -742,7 +693,7 @@ function App() {
 
       <div className="p-6">{renderContent()}</div>
 
-      {/* Use plain <style>, not Next.js-only <style jsx> */}
+      {/* Styles */}
       <style>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
