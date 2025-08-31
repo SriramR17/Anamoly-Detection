@@ -57,6 +57,10 @@ export interface BestModelData {
   };
 }
 
+export interface AnomalyTimePoint {
+  hour: number;
+  anomalies: number;
+}
 
 
 export const apiService = {
@@ -80,6 +84,12 @@ export const apiService = {
     const response = await api.get<ApiResponse<BestModelData[]>>('/api/best_models');
     return response.data;
   },
+
+  getAnomalyTimeSeries: async (): Promise<ApiResponse<AnomalyTimePoint[]>> => {
+    const response = await api.get<ApiResponse<AnomalyTimePoint[]>>('/api/anomaly_time_series');
+    return response.data;
+  },
+
 };
 
 // Normalize: your endpoint returns raw metrics; wrap it into ApiResponse

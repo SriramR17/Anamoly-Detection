@@ -206,7 +206,42 @@ async def get_statistics():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading statistics: {str(e)}")
 
+@app.get("/api/anomaly_time_series")
+async def get_anomaly_time_series():
+    """
+    Returns anomaly counts grouped by time (hour).
+    """
+    try:
+        results_path = Path(__file__).parent.parent / "results" / "predictions.csv"
 
+        if not results_path.exists():
+            return {"status": "no_data", "data": []}
+
+        df = pd.read_csv(results_path)
+
+        if "Time" not in df.columns or "Predicted_Anomaly" not in df.columns:
+            return {"status": "invalid_data", "data": []}
+
+        try:
+            df["Hour"] = pd.to_datetime(df["Time"], format='%H:%M', errors='coerce').dt.hour
+        except:
+            df["Hour"] = pd.to_datetime(df["Time"], errors='coerce').dt.hour
+        
+        df = df.dropna(subset=['Hour'])
+        df['Hour'] = df['Hour'].astype(int)
+        
+        time_series = df.groupby("Hour")["Predicted_Anomaly"].sum().reset_index()
+        
+        all_hours = pd.DataFrame({'Hour': range(24)})
+        time_series = all_hours.merge(time_series, on='Hour', how='left').fillna(0)
+        
+        data = [{"hour": int(row['Hour']), "anomalies": int(row['Predicted_Anomaly'])} 
+                for _, row in time_series.iterrows()]
+
+        return {"status": "success", "data": data}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing anomaly time series: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
