@@ -12,6 +12,8 @@ export interface DashboardData {
   total_samples: number;
   total_anomalies: number;
   anomaly_rate: number;
+  peak_hours:number;
+  peak_rate:number;
   last_updated: string;
   recent_anomalies?: any[];
 }

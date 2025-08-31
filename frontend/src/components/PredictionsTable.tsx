@@ -306,18 +306,7 @@ const PredictionsTable: React.FC = () => {
                   
                   {/* Enhanced Filter & Sort Dropdown */}
                   <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-3">
-                      <Filter className="text-gray-400 w-5 h-5" />
-                      <select 
-                        value={filter} 
-                        onChange={(e) => setFilter(e.target.value as FilterType)}
-                        className="bg-gray-800 text-white px-4 py-3 rounded-xl border border-gray-600 focus:border-blue-500 focus:outline-none transition-all duration-200 font-medium min-w-[160px]"
-                      >
-                        <option value="all">All Groups</option>
-                        <option value="anomalies">With Anomalies</option>
-                        <option value="normal">Normal Only</option>
-                      </select>
-                    </div>
+                    
 
                     {/* Sort Dropdown */}
                     <div className="flex items-center space-x-3">

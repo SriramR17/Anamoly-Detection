@@ -133,8 +133,8 @@ const MetricGauge: React.FC<MetricGaugeProps> = ({ name, value }) => {
   };
 
   return (
-    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 flex flex-col items-center w-full h-full">
-      <div className="text-white font-medium mb-4">{name}</div>
+    <div className="bg-gray-800 rounded-xl p-5 border border-gray-700 flex flex-col items-center w-full h-full">
+      <div className="text-white font-medium mb-3">{name}</div>
       <GaugeChart
         id={`gauge-${name}`}
         nrOfLevels={5}                              // 5 thick segments
@@ -145,7 +145,7 @@ const MetricGauge: React.FC<MetricGaugeProps> = ({ name, value }) => {
         needleColor={getNeedleColor(value)}         // dynamic needle color
         needleBaseColor="#374151"
         formatTextValue={() => `${value.toFixed(2)}%`}
-        style={{ width: "100%", height: "180px" }}
+        style={{ width: "100%", height: "160px" }}
       />
     </div>
   );
@@ -162,7 +162,7 @@ const EvaluationMetrics: React.FC<EvaluationMetricsProps> = ({ metrics }) => {
         <TrendingUp className="mr-2 h-5 w-5 text-blue-400" />
         Evaluation Metrics
       </h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+      <div className="grid grid-cols-2 gap-6">
         {metrics.map((metric, idx) => (
           <MetricGauge
             key={idx}
@@ -304,14 +304,59 @@ const AnomalyPieChart: React.FC<AnomalyPieChartProps> = ({ data }) => {
 
 // ---------- Peak Hours Clock ----------
 const PeakHoursClock: React.FC = () => {
-  const peakHour = 14; // 2 PM
+  const [peakHour, setPeakHour] = useState<number>(0);
   const [rotation, setRotation] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [anomalyPercentage, setAnomalyPercentage] = useState(85);
+
+  useEffect(() => {
+    const fetchPeakHour = async () => {
+      try {
+        const response = await fetch('/api/dashboard');
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+          setPeakHour(result.data.peak_hours);
+          setAnomalyPercentage(result.data.peak_rate);
+        }
+      } catch (error) {
+        console.error('Failed to fetch peak hour:', error);
+        setPeakHour(14); // Fallback to default
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPeakHour();
+    
+    // Optional: Poll for updates
+    const interval = setInterval(fetchPeakHour, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const deg = (peakHour % 12) * 30;
     const timer = setTimeout(() => setRotation(deg), 1000);
     return () => clearTimeout(timer);
   }, [peakHour]);
+
+  const formatHour = (hour: number): string => {
+    if (hour === 0) return '12:00 AM';
+    if (hour < 12) return `${hour}:00 AM`;
+    if (hour === 12) return '12:00 PM';
+    return `${hour - 12}:00 PM`;
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <div className="animate-pulse">
+          <div className="h-6 bg-gray-700 rounded mb-4"></div>
+          <div className="w-60 h-60 bg-gray-700 rounded-full mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
@@ -346,15 +391,16 @@ const PeakHoursClock: React.FC = () => {
         </div>
       </div>
       <div className="text-center mt-4">
-        <div className="text-3xl font-bold text-white">{peakHour}:00</div>
+        <div className="text-3xl font-bold text-white">{formatHour(peakHour)}</div>
         <div className="text-gray-400">Peak Anomaly Detection Time</div>
         <div className="mt-2 text-sm text-orange-400">
-          85% of daily anomalies occur during this hour
+          {anomalyPercentage}% of daily anomalies occur during this hour
         </div>
       </div>
     </div>
   );
 };
+
 
 // ---------- Network Tile ----------
 const NetworkTile: React.FC<NetworkTileProps> = ({ network, index, isSelected, onClick }) => {
@@ -508,6 +554,8 @@ function App() {
         const anomalyRate = result.data.anomaly_rate;
         const normalRate = 100 - anomalyRate;
 
+        const peak_hour=result.data.peak_hours;
+
         setDistributionData([
           { name: 'Normal Traffic', value: parseFloat(normalRate.toFixed(2)), color: '#10B981' },
           { name: 'Anomalous Traffic', value: parseFloat(anomalyRate.toFixed(2)), color: '#EF4444' }
@@ -522,6 +570,7 @@ function App() {
   const fetchEvaluationMetrics = async () => {
     try {
       const result = await evaluationService.getEvaluationMetrics();
+      
       const raw = (result as any)?.data ?? result;
 
       const formatted = [

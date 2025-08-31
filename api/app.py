@@ -45,6 +45,11 @@ async def get_dashboard_data():
             total_samples = len(df)
             anomalies = df['Predicted_Anomaly'].sum() if 'Predicted_Anomaly' in df.columns else 0
             anomaly_rate = (anomalies / total_samples * 100) if total_samples > 0 else 0
+
+            df['Hour'] = pd.to_datetime(df['Time'], format='%H:%M').dt.hour
+            hourly_anomalies = df.groupby('Hour')['Predicted_Anomaly'].mean()
+            peak_hours = hourly_anomalies.nlargest(3).index.tolist()
+            peak_hour_anomaly_rate = (hourly_anomalies.iloc[peak_hours[0]] * 100) if len(peak_hours) > 0 else 0
             
             # Get recent anomalies (last 10)
             recent_anomalies = df[df['Predicted_Anomaly'] == 1].tail(10) if 'Predicted_Anomaly' in df.columns else pd.DataFrame()
@@ -55,6 +60,8 @@ async def get_dashboard_data():
                     "total_samples": int(total_samples),
                     "total_anomalies": int(anomalies),
                     "anomaly_rate": round(float(anomaly_rate), 2),
+                    "peak_hours":peak_hours[0],
+                    "peak_rate":round(float(peak_hour_anomaly_rate), 1),
                     "recent_anomalies": recent_anomalies.to_dict('records') if not recent_anomalies.empty else [],
                     "last_updated": "Just now"
                 }
