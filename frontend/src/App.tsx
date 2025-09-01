@@ -152,6 +152,22 @@ const AlgorithmComparison: React.FC<AlgorithmComparisonProps> = ({ data, selecte
         Algorithm Performance Comparison
       </h3>
 
+      <div className="mb-4 flex flex-wrap gap-2">
+        {data.map((algo, idx) => (
+          <button
+            key={idx}
+            onClick={() => setSelectedAlgorithm(selectedAlgorithm === idx ? null : idx)}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
+              selectedAlgorithm === idx
+                ? 'bg-blue-600 text-white ring-2 ring-blue-400'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            {algo.name}
+          </button>
+        ))}
+      </div>
+
       <ResponsiveContainer width="100%" height={350}>
         <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -172,9 +188,23 @@ const AlgorithmComparison: React.FC<AlgorithmComparisonProps> = ({ data, selecte
           <Bar dataKey="recall" fill="#F59E0B" name="Recall" radius={[2, 2, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
+
+      {selectedAlgorithm !== null && (
+        <div className="mt-4 p-4 bg-gray-700 rounded-lg animate-fadeIn">
+          <h4 className="text-white font-semibold mb-2">{data[selectedAlgorithm].name} Details</h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div><span className="text-gray-400">Accuracy:</span><span className="text-blue-400 font-medium ml-2">{data[selectedAlgorithm].accuracy}%</span></div>
+            <div><span className="text-gray-400">F1-Score:</span><span className="text-green-400 font-medium ml-2">{data[selectedAlgorithm].f1}%</span></div>
+            <div><span className="text-gray-400">Precision:</span><span className="text-purple-400 font-medium ml-2">{data[selectedAlgorithm].precision}%</span></div>
+            <div><span className="text-gray-400">Recall:</span><span className="text-orange-400 font-medium ml-2">{data[selectedAlgorithm].recall}%</span></div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
+
 
 // ---------- Anomaly Pie Chart ----------
 const AnomalyPieChart: React.FC<AnomalyPieChartProps> = ({ data }) => {

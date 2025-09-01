@@ -346,59 +346,10 @@ const PredictionsTable: React.FC = () => {
             </div>
           </div>
           
-          <div className="bg-gradient-to-br from-red-600/20 to-red-800/20 rounded-xl p-6 border border-red-500/30 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-red-300 text-sm font-semibold uppercase tracking-wide">Critical Risk</p>
-                <p className="text-3xl font-bold text-white mt-2">
-                  {filteredGroups.filter(g => g.anomalyRate >= 80).length}
-                </p>
-                <div className="flex items-center mt-2 text-red-400 text-sm">
-                  <Shield className="w-4 h-4 mr-1" />
-                  Immediate attention
-                </div>
-              </div>
-              <div className="p-4 bg-red-500/20 rounded-xl">
-                <AlertTriangle className="w-8 h-8 text-red-400" />
-              </div>
-            </div>
-          </div>
           
-          <div className="bg-gradient-to-br from-orange-600/20 to-orange-800/20 rounded-xl p-6 border border-orange-500/30 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-orange-300 text-sm font-semibold uppercase tracking-wide">Medium Risk</p>
-                <p className="text-3xl font-bold text-white mt-2">
-                  {filteredGroups.filter(g => g.anomalyRate >= 40 && g.anomalyRate < 80).length}
-                </p>
-                <div className="flex items-center mt-2 text-orange-400 text-sm">
-                  <Target className="w-4 h-4 mr-1" />
-                  Monitor closely
-                </div>
-              </div>
-              <div className="p-4 bg-orange-500/20 rounded-xl">
-                <TrendingUp className="w-8 h-8 text-orange-400" />
-              </div>
-            </div>
-          </div>
           
-          <div className="bg-gradient-to-br from-green-600/20 to-green-800/20 rounded-xl p-6 border border-green-500/30 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-300 text-sm font-semibold uppercase tracking-wide">Normal Status</p>
-                <p className="text-3xl font-bold text-white mt-2">
-                  {filteredGroups.filter(g => g.anomalyRate < 40).length}
-                </p>
-                <div className="flex items-center mt-2 text-green-400 text-sm">
-                  <CheckCircle className="w-4 h-4 mr-1" />
-                  Operating normally
-                </div>
-              </div>
-              <div className="p-4 bg-green-500/20 rounded-xl">
-                <CheckCircle className="w-8 h-8 text-green-400" />
-              </div>
-            </div>
-          </div>
+          
+          
         </div>
 
         {/* Groups Grid */}
