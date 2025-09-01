@@ -20,8 +20,10 @@ import {
 
 import PredictionsTable from './components/PredictionsTable';
 import Statistics from './components/Statistics';
-import { apiService, evaluationService, DashboardData } from './api';
+import { apiService, evaluationService } from './api';
 
+// (--- types and components: StatsCard, MetricGauge, EvaluationMetrics, AlgorithmComparison, AnomalyPieChart, PeakHoursClock, TimeByAnomalyGraph ---)
+// ⚠️ keep the ones I already gave you, unchanged. 
 // ---------- Local types ----------
 type IconType = React.ElementType;
 
@@ -175,41 +177,162 @@ const AlgorithmComparison: React.FC<AlgorithmComparisonProps> = ({ data, selecte
 };
 
 // ---------- Anomaly Pie Chart ----------
-const AnomalyPieChart: React.FC<AnomalyPieChartProps> = ({ data }) => (
-  <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-    <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
-      <Eye className="mr-2 h-5 w-5 text-green-400" />
-      Anomaly vs Normal Distribution
-    </h3>
-    <ResponsiveContainer width="100%" height={300}>
-      <PieChart>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="50%"
-          labelLine={false}
-          outerRadius={100}
-          dataKey="value"
-          startAngle={90}
-          endAngle={450}
-        >
-          {data.map((entry, index) => (
-            <Cell key={index} fill={entry.color} stroke={entry.color} strokeWidth={2} />
+const AnomalyPieChart: React.FC<AnomalyPieChartProps> = ({ data }) => {
+  const RADIAN = Math.PI / 180;
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    return (
+      <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={14} fontWeight="bold">
+        {`${(percent * 100).toFixed(1)}%`}
+      </text>
+    );
+  };
+
+  return (
+    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+      <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+        <Eye className="mr-2 h-5 w-5 text-green-400" />
+        Anomaly vs Normal Distribution
+      </h3>
+      <ResponsiveContainer width="100%" height={300}>
+        <PieChart>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            labelLine={false}
+            label={renderCustomizedLabel}
+            outerRadius={100}
+            fill="#8884d8"
+            dataKey="value"
+            startAngle={90}
+            endAngle={450}
+          >
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} stroke={entry.color} strokeWidth={2} />
+            ))}
+          </Pie>
+          <Tooltip
+            contentStyle={{
+              backgroundColor: 'white',
+              border: '1px solid #374151',
+              borderRadius: '8px',
+              color: '#F9FAFB'
+            }}
+            formatter={(value: any, name: any) => [`${value}%`, name]}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="flex justify-center mt-4 space-x-8">
+        {data.map((item, index) => (
+          <div key={index} className="text-center">
+            <div className="flex items-center justify-center mb-1">
+              <div className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: item.color }} />
+              <span className="text-gray-300 text-sm">{item.name}</span>
+            </div>
+            <div className="text-2xl font-bold text-white">{item.value}%</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+// ---------- Peak Hours Clock ----------
+const PeakHoursClock: React.FC = () => {
+  const [peakHour, setPeakHour] = useState<number>(0);
+  const [rotation, setRotation] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [anomalyPercentage, setAnomalyPercentage] = useState(0);
+
+  useEffect(() => {
+    const fetchPeakHour = async () => {
+      try {
+        const response = await fetch('/api/dashboard');
+        const result = await response.json();
+        if (result.status === 'success') {
+          setPeakHour(result.data.peak_hours);
+          setAnomalyPercentage(result.data.peak_rate);
+        }
+      } catch (error) {
+        console.error('Failed to fetch peak hour:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPeakHour();
+    const interval = setInterval(fetchPeakHour, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const deg = (peakHour % 12) * 30;
+    const timer = setTimeout(() => setRotation(deg), 1000);
+    return () => clearTimeout(timer);
+  }, [peakHour]);
+
+  const formatHour = (hour: number): string => {
+    if (hour === 0) return '12:00 AM';
+    if (hour < 12) return `${hour}:00 AM`;
+    if (hour === 12) return '12:00 PM';
+    return `${hour - 12}:00 PM`;
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <div className="animate-pulse">
+          <div className="h-6 bg-gray-700 rounded mb-4"></div>
+          <div className="w-60 h-60 bg-gray-700 rounded-full mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+      <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+        <Clock className="mr-2 h-5 w-5 text-orange-400" />
+        Peak Anomaly Hours
+      </h3>
+      <div className="flex justify-center">
+        <div className="relative w-60 h-60 rounded-full border-4 border-gray-600 flex items-center justify-center">
+          {[...Array(12)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-4 bg-gray-400"
+              style={{
+                top: "6px",
+                left: "50%",
+                transform: `rotate(${i * 30}deg) translateX(-50%)`,
+                transformOrigin: "center 120px",
+              }}
+            />
           ))}
-        </Pie>
-        <Tooltip
-          contentStyle={{
-            backgroundColor: '#1F2937',
-            border: '1px solid #374151',
-            borderRadius: '8px',
-            color: '#F9FAFB'
-          }}
-          formatter={(value: any) => [`${value}%`]}
-        />
-      </PieChart>
-    </ResponsiveContainer>
-  </div>
-);
+          <div
+            className="absolute w-1 bg-orange-400 origin-bottom rounded"
+            style={{
+              height: "40%",
+              bottom: "50%",
+              left: "50%",
+              transform: `translateX(-50%) rotate(${rotation}deg)`,
+              transition: "transform 1s ease-in-out",
+            }}
+          />
+        </div>
+      </div>
+      <div className="text-center mt-4">
+        <div className="text-3xl font-bold text-white">{formatHour(peakHour)}</div>
+        <div className="text-gray-400">Peak Anomaly Detection Time</div>
+        <div className="mt-2 text-sm text-orange-400">
+          {anomalyPercentage}% of daily anomalies occur during this hour
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // ---------- Time vs Anomalies Graph ----------
 const TimeByAnomalyGraph: React.FC<{ data: AnomalyTimePoint[] }> = ({ data }) => (
@@ -366,20 +489,21 @@ function App() {
               <StatsCard title="Response Time" value={stats.responseTime} icon={Zap} color="purple" />
             </div>
 
-            {/* Evaluation Metrics + Right Column */}
+            {/* Evaluation + Pie + Peak */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <EvaluationMetrics metrics={evaluationMetrics} />
-              <AnomalyPieChart data={distributionData} />
+              <div className="grid grid-cols-1 gap-6">
+                <AnomalyPieChart data={distributionData} />
+                <PeakHoursClock />
+              </div>
             </div>
 
-            {/* Algorithm Performance */}
             <AlgorithmComparison
               data={algorithmPerformanceData}
               selectedAlgorithm={selectedAlgorithm}
               setSelectedAlgorithm={setSelectedAlgorithm}
             />
 
-            {/* Time vs Anomalies */}
             <TimeByAnomalyGraph data={timeSeriesData} />
           </div>
         );
@@ -388,7 +512,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      {/* Header */}
+      {/* HEADER (restored) */}
       <div className="bg-gray-800/80 backdrop-blur-sm border-b border-gray-700 px-6 py-6 sticky top-0 z-10">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
           <div className="flex items-center space-x-4">
